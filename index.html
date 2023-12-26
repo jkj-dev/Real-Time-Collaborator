@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div>
+      <input type="text" placeholder="Enter your name" id="input" />
+      <button id="button" type="submit">submit</button>
+    </div>
+
+    <div id="chat"></div>
+
+    <div id="chat-container">
+      <div id="chat-box"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      var socket = io(); // here we can pass arguments to set if the domains are different
+      var chat = document.getElementById('chat-box');
+      const users = {};
+
+      socket.on('connect', () => {
+        users[socket.id] = { arrowDiv: null, nameBox: null, userName: null };
+        console.log('user connected', users);
+      });
+
+      socket.on('user-data', (data) => {
+        const div = document.createElement('div');
+        div.textContent = data.data + ' joined the room!';
+        chat.appendChild(div);
+      });
+
+      socket.on('user-name', (data) => {
+        users[data.id]['userName'] = data.userName;
+      });
+
+      socket.on('user-mouse-data', (data) => {
+        console.log(data);
+        console.log(users);
+        if (!users[data.id]?.['arrowDiv']) {
+          users[data.id] = {
+            arrowDiv: null,
+            nameBox: null,
+            userName: data.userName,
+          };
+          const container = document.createElement('div');
+          container.style.position = 'absolute';
+
+          const img = document.createElement('img');
+          img.src =
+            'data:image/jpeg;base64,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'; // Replace with the actual path to your mouse pointer image
+          img.style.width = '20px';
+          img.style.height = '20px';
+          img.style.position = 'absolute';
+          document.body.appendChild(container);
+          document.body.appendChild(img);
+          users[data.id]['arrowDiv'] = img;
+          users[data.id]['nameBox'] = container;
+        }
+        users[data.id]['arrowDiv'].style.left = data.data.x + 'px';
+        users[data.id]['arrowDiv'].style.top = data.data.y + 'px';
+        users[data.id]['nameBox'].style.left = data.data.x + 30 + 'px';
+        users[data.id]['nameBox'].style.top = data.data.y + 'px';
+        users[data.id]['nameBox'].innerHTML = data.userName
+          ? data.userName
+          : data.id;
+      });
+
+      const inputData = document.getElementById('input');
+      const button = document.getElementById('button');
+      document.addEventListener('mousemove', (event) => {
+        socket.emit('mousemove', { x: event.clientX, y: event.clientY });
+      });
+
+      button.addEventListener('click', () => {
+        socket.userName = inputData.value;
+        socket.emit('user-input', inputData.value);
+        inputData.value = '';
+      });
+    </script>
+  </body>
+</html>
